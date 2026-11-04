@@ -31,15 +31,16 @@ if [[ "${1:-}" == "--install" ]]; then
   sleep 1
   rm -rf "$DEST"
   cp -R "$APP" "$DEST"
+  # 古いビルドの許可項目が残っていると新しいビルドが永久に未許可扱いになる（重複して溜まる）ので先に消す
+  tccutil reset Accessibility com.local.claude-remap >/dev/null 2>&1 || true
   open "$DEST"
   sleep 3
   if pgrep -f "$DEST/Contents/MacOS/$APP_NAME" >/dev/null; then
-    echo "    起動中です。"
+    echo "    起動しました。アクセシビリティの許可ダイアログが出たら「システム設定を開く」→ $APP_NAME をオンにしてください。"
+    echo "    （アプリは許可されるまで待機し、許可後そのまま動き始めます。再起動は不要です）"
+    echo "    ※ 再ビルドのたびに許可が必要です（adhoc 署名のため。古い項目は自動で消してあります）"
   else
-    echo "    起動直後に終了しました。アクセシビリティ許可が必要です:"
-    echo "    システム設定 → プライバシーとセキュリティ → アクセシビリティ → $APP_NAME をオフ→オン（無ければ + で追加）"
-    echo "    ※ 再ビルドのたびに許可の付け直しが必要です（adhoc 署名のため）"
-    open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+    echo "    起動していません。open \"$DEST\" で起動してください。"
   fi
 else
   echo "[3/3] インストールは省略（--install を付けると ~/Applications へ入れ替えます）"

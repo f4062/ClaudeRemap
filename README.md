@@ -33,9 +33,8 @@ cd ClaudeRemap
 ```
 
 1. `~/Applications/ClaudeRemap.app` が作られ、起動します。
-2. **初回は起動直後に終了します**。システム設定 → プライバシーとセキュリティ → アクセシビリティ で `ClaudeRemap` をオンにしてください（一覧に無ければ「＋」で `~/Applications/ClaudeRemap.app` を追加）。
-3. もう一度 `open ~/Applications/ClaudeRemap.app` で起動します。
-4. ログイン時に自動起動したい場合は、システム設定 → 一般 → ログイン項目 に `ClaudeRemap.app` を追加します。
+2. 初回は「ClaudeRemap がアクセシビリティ機能を使用して…」のダイアログが出るので、「システム設定を開く」→ 一覧の `ClaudeRemap` をオンにします。アプリは許可されるまで待機し、許可後そのまま動き始めます（起動し直し不要）。
+3. ログイン時に自動起動したい場合は、システム設定 → 一般 → ログイン項目 に `ClaudeRemap.app` を追加します。
 
 自分でビルドするので Gatekeeper（「開発元を確認できません」）には引っかかりません。
 
@@ -125,10 +124,34 @@ pkill ClaudeRemap; ~/Applications/ClaudeRemap.app/Contents/MacOS/ClaudeRemap
 アクセシビリティ許可が無いと「EventTap の作成に失敗しました」と出て終了します。
 （ターミナルアプリ自体にアクセシビリティ許可が無い場合も同じ表示になります。その場合はログイン項目か `open` から起動して使ってください。）
 
+## 非エンジニアに渡す（ビルド済みアプリ＋手順書）
+
+```bash
+./dist.sh
+```
+
+`dist/ClaudeRemap-配布用-YYYYMMDD.zip` ができます。中身は次のとおりで、受け取った人は zip を展開して `インストール.command` をダブルクリックするだけです。
+
+| ファイル | 内容 |
+|---|---|
+| `ClaudeRemap.app` | universal ビルド（Apple Silicon / Intel 両対応、macOS 12 以降） |
+| `インストール.command` | `~/Applications` へコピー、対象アプリの設定（LINE WORKS / ChatGPT / Claude / Teams）、ログイン項目の登録、起動まで自動で行う |
+| `手順書.pdf` / `手順書.html` | 受け取った人向けの手順（Gatekeeper の「このまま開く」、アクセシビリティ許可、動作確認、FAQ） |
+
+- 署名していないので、受け取った側は初回に Gatekeeper の「このまま開く」操作が1回必要です（手順書に記載）。Apple Developer Program に加入していれば Developer ID で署名＋公証してこの手順をなくせます。
+- 対象アプリを変えたい場合は `installer/インストール.command` 内の JSON を編集してから `./dist.sh` を実行します。
+
 ## 再ビルドしたとき
 
-`./build.sh --install` で入れ替えるたびに、**アクセシビリティ許可を付け直す**必要があります（adhoc 署名のため、ビルドごとに別のアプリとして扱われます）。
-システム設定のアクセシビリティで `ClaudeRemap` をオフ→オンにしてください。
+adhoc 署名のため、ビルドごとに別のアプリとして扱われ、**アクセシビリティ許可を付け直す**必要があります。
+`./build.sh --install` は古い許可項目を自動で消してから起動するので、出てきたダイアログで「システム設定を開く」→ `ClaudeRemap` をオンにするだけです。アプリは許可されるまで数秒ごとに自分を起動し直して判定し、許可後そのまま動き始めます。
+
+もし「スイッチはオンなのに効かない」状態になったら、古い項目が残っています。次で消してからアプリを起動し直してください。
+
+```bash
+tccutil reset Accessibility com.local.claude-remap
+open ~/Applications/ClaudeRemap.app
+```
 
 ## アンインストール
 
@@ -152,3 +175,6 @@ pkill ClaudeRemap; ~/Applications/ClaudeRemap.app/Contents/MacOS/ClaudeRemap
 | `build.sh` | ビルドと組み立て。`--install` で `~/Applications` へ入れ替え |
 | `apps.example.json` | 対象アプリ設定の例（既定と同じ内容） |
 | `keybindings.example.json` | Paradev 用の Claude Code キー設定の例 |
+| `dist.sh` | 非エンジニア向け配布 zip の作成（universal ビルド＋インストーラ＋手順書 PDF） |
+| `installer/インストール.command` | 配布 zip に入れるダブルクリック用インストーラ |
+| `docs/手順書.html` | 配布 zip に入れる手順書の原稿（dist.sh が PDF 化） |

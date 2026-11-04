@@ -147,6 +147,63 @@ for (bundleID, mode) in TARGET_APPS.sorted(by: { $0.key < $1.key }) {
 log("chat: Enter → 改行 / Command+Enter → 送信 / IME確定 → 素通り")
 log("terminal: Enter → そのまま / Command+Enter → Option+Enter")
 
+// アクセシビリティ許可。未許可なら macOS 標準のダイアログを出し（一覧にも自動で載る）、許可されるまで待つ。
+// 起動中のプロセスでは AXIsProcessTrusted() の結果が更新されない（execv で同じ pid のまま再実行しても同じ。
+// 2026-11-04 macOS 26 で確認）ので、数秒ごとに LaunchServices で自分の新しいインスタンスを起動して終了する
+// → pid が変わって判定が新規評価され、許可後にアプリを起動し直す必要がない
+let AX_WAIT_LIMIT_SEC = 15 * 60
+let AX_RETRY_SEC: UInt32 = 5
+let myPID = ProcessInfo.processInfo.processIdentifier
+let myBundleID = Bundle.main.bundleIdentifier ?? "com.local.claude-remap"
+var axWaited = Int(ProcessInfo.processInfo.environment["CLAUDE_REMAP_AX_WAITED"] ?? "0") ?? 0
+var axPrompted = axWaited > 0  // 2回目以降のインスタンスはダイアログを出さない
+
+func anotherInstanceRunning() -> Bool {
+    return NSRunningApplication.runningApplications(withBundleIdentifier: myBundleID)
+        .contains { $0.processIdentifier != myPID }
+}
+
+while !AXIsProcessTrusted() {
+    if !axPrompted {
+        let opts = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        _ = AXIsProcessTrustedWithOptions(opts)
+        log("アクセシビリティ許可がありません。システム設定 → プライバシーとセキュリティ → アクセシビリティ で ClaudeRemap をオンにしてください。待機中...")
+        axPrompted = true
+    }
+    if axWaited >= AX_WAIT_LIMIT_SEC {
+        fputs("アクセシビリティ許可が \(AX_WAIT_LIMIT_SEC / 60) 分以内に付きませんでした。許可してからもう一度起動してください。\n", stderr)
+        exit(1)
+    }
+    sleep(AX_RETRY_SEC)
+    axWaited += Int(AX_RETRY_SEC)
+
+    let cfg = NSWorkspace.OpenConfiguration()
+    cfg.createsNewApplicationInstance = true
+    cfg.activates = false
+    cfg.environment = ["CLAUDE_REMAP_AX_WAITED": String(axWaited)]
+    NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: cfg) { _, error in
+        if let error = error {
+            fputs("自分自身の再起動に失敗しました: \(error.localizedDescription)\n", stderr)
+        }
+    }
+    // 完了ハンドラは NSApplication を使わないこのプロセスでは当てにならないので、
+    // 新しいインスタンスが現れたことを確認してから終了する（最大3秒。現れなければこのプロセスで待機を続ける）
+    var spawned = false
+    for _ in 0..<30 {
+        CFRunLoopRunInMode(.defaultMode, 0.1, false)
+        if anotherInstanceRunning() {
+            spawned = true
+            break
+        }
+    }
+    if spawned {
+        exit(0)
+    }
+}
+if axWaited > 0 {
+    log("アクセシビリティ許可を確認しました（待機 \(axWaited) 秒）。")
+}
+
 let eventMask = CGEventMask(1 << CGEventType.keyDown.rawValue)
 
 guard let tap = CGEvent.tapCreate(

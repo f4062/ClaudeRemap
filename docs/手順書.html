@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>ClaudeRemap インストール手順</title>
+<style>
+body{font-family:-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;max-width:760px;margin:32px auto;padding:0 24px;line-height:1.8;color:#222}
+h1{font-size:24px;border-bottom:2px solid #333;padding-bottom:6px}h2{font-size:18px;margin-top:32px;border-left:5px solid #2b6cb0;padding-left:10px}
+ol li{margin:8px 0}.box{background:#f4f6f8;border:1px solid #d8dde3;border-radius:6px;padding:12px 16px;margin:12px 0}
+.warn{background:#fff7e6;border-color:#f0c36d}kbd{border:1px solid #999;border-bottom-width:2px;border-radius:4px;padding:0 6px;font-family:inherit;background:#fff}
+table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px 12px}
+@media print{body{margin:0;max-width:none}}
+</style></head><body>
+<h1>ClaudeRemap インストール手順</h1>
+<p>LINE WORKS・ChatGPT・Claude・Teams で、<strong>Enter＝改行、<kbd>⌘</kbd>+<kbd>Enter</kbd>＝送信</strong> になるようにする小さなアプリです。
+「Enter を押したつもりが送信されてしまった」をなくします。インストールは 5 分ほどで、作業は 3 ステップです。</p>
+
+<table><tr><th></th><th>今まで</th><th>インストール後</th></tr>
+<tr><td>Enter</td><td>送信</td><td>改行</td></tr>
+<tr><td><kbd>⌘</kbd>+<kbd>Enter</kbd></td><td>—</td><td>送信</td></tr>
+<tr><td>日本語の変換を確定する Enter</td><td>確定</td><td>確定（変わりません）</td></tr></table>
+
+<h2>ステップ 1. zip を開いて「インストール.command」をダブルクリック</h2>
+<ol>
+<li>受け取った zip をダブルクリックして展開します。「ClaudeRemap-配布用」というフォルダができます。</li>
+<li>フォルダの中の <strong>インストール.command</strong> をダブルクリックします。</li>
+</ol>
+<div class="box warn"><strong>「開発元を確認できないため開けませんでした」「Apple では…確認できません」と出た場合（初回はほぼ出ます）</strong><br>
+Mac の安全機能で、自作アプリでは必ず出ます。次の操作で開けます。
+<ol>
+<li>そのダイアログは「完了」で閉じます（「ゴミ箱に入れる」は押さないでください）。</li>
+<li>アップルメニュー → <strong>システム設定</strong> → <strong>プライバシーとセキュリティ</strong> を開きます。</li>
+<li>右側を下へスクロールすると「“インストール.command”は…ブロックされました」の横に <strong>「このまま開く」</strong> ボタンがあるので押します。</li>
+<li>パスワードか Touch ID を求められたら入力し、「開く」を押します。</li>
+</ol>
+黒い画面（ターミナル）が開いて、自動で進みます。</div>
+<div class="box">途中で <strong>「“ターミナル”が“System Events”を制御しようとしています」</strong> と出たら <strong>「許可」</strong> を押してください（ログイン時に自動で起動するための登録です）。</div>
+
+<h2>ステップ 2. 「システム設定を開く」→ ClaudeRemap をオン</h2>
+<ol>
+<li>最後に <strong>「“ClaudeRemap”がアクセシビリティ機能を使用してこのコンピュータを制御することを求めています」</strong> というダイアログが出ます。<strong>「システム設定を開く」</strong> を押します。</li>
+<li>アクセシビリティの一覧に <strong>ClaudeRemap</strong> が並んでいるので、右のスイッチを <strong>オン</strong> にします。パスワードか Touch ID を求められたら入力します。</li>
+</ol>
+<p>これで動き始めます。Mac の再起動やアプリの起動し直しは不要です。黒い画面は閉じて構いません。</p>
+
+<h2>ステップ 3. 動作確認</h2>
+<ol>
+<li>LINE WORKS を開き、メッセージ欄で何か打って <kbd>Enter</kbd> を押します。<strong>改行されれば完了</strong>です。</li>
+<li>送信は <kbd>⌘</kbd>+<kbd>Enter</kbd> です。</li>
+</ol>
+
+<h2>よくある質問</h2>
+<p><strong>Q. アプリのアイコンが見当たりません。</strong><br>A. 画面には何も出ないタイプのアプリです。Dock にもメニューバーにも出ません。Mac を起動すると自動で裏で動きます。</p>
+<p><strong>Q. 急に Enter で送信されるようになりました。</strong><br>A. アプリが止まっています。「アプリケーション」フォルダ（自分のホーム → Applications）の ClaudeRemap をダブルクリックすると再開します。それでも直らない場合はステップ 2 の設定でスイッチがオンか確認してください。</p>
+<p><strong>Q. 元に戻したいです。</strong><br>A. システム設定 → 一般 → ログイン項目 から ClaudeRemap を外し、ホームの Applications フォルダにある ClaudeRemap をゴミ箱に入れてください。Mac を再起動すると完全に元に戻ります。</p>
+<p><strong>Q. 対象のアプリを増やしたい／減らしたい。</strong><br>A. 設定ファイルで変えられます。担当者（遠藤）に連絡してください。</p>
+</body></html>
