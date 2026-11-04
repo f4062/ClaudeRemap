@@ -1,0 +1,7 @@
+{
+  "com.anthropic.claudefordesktop": "chat",
+  "com.openai.codex": "chat",
+  "com.naver.lineworks": "chat",
+  "com.microsoft.teams2": "chat",
+  "com.superset.desktop": "terminal"
+}
