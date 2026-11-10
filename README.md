@@ -15,7 +15,7 @@ Claude / ChatGPT / LINE WORKS / Microsoft Teams などの「Enter＝送信」ア
 | モード | Enter | Cmd+Enter | 使うアプリ |
 |---|---|---|---|
 | `chat` | Shift+Enter（改行） | Enter（送信） | Claude, ChatGPT, LINE WORKS, Teams など「Enter 送信・Shift+Enter 改行」のチャットアプリ |
-| `terminal` | そのまま | Option+Enter | Paradev などターミナル系。Enter を触らないので IME 確定・メニュー決定・シェルを壊しません |
+| `terminal` | そのまま | Option+Enter | ターミナル系。Enter を触らないので IME 確定・メニュー決定・シェルを壊しません（Paradev は対象外。後述） |
 
 `terminal` モードは Claude Code 側のキー設定と組み合わせて使います（後述）。
 
@@ -41,7 +41,7 @@ cd ClaudeRemap
 ## 対象アプリを選ぶ
 
 設定ファイル `~/.config/claude-remap/apps.json` を置くと、**そのファイルの内容だけ**が対象になります（組み込みの既定とは合成しません）。
-無ければ組み込みの既定（下の5つ）が使われます。
+無ければ組み込みの既定（下の4つ）が使われます。
 
 ```bash
 mkdir -p ~/.config/claude-remap
@@ -53,8 +53,7 @@ cp apps.example.json ~/.config/claude-remap/apps.json
   "com.anthropic.claudefordesktop": "chat",
   "com.openai.codex": "chat",
   "com.naver.lineworks": "chat",
-  "com.microsoft.teams2": "chat",
-  "com.superset.desktop": "terminal"
+  "com.microsoft.teams2": "chat"
 }
 ```
 
@@ -64,7 +63,6 @@ cp apps.example.json ~/.config/claude-remap/apps.json
 | `com.openai.codex` | ChatGPT |
 | `com.naver.lineworks` | LINE WORKS |
 | `com.microsoft.teams2` | Microsoft Teams |
-| `com.superset.desktop` | Paradev（旧名 Superset） |
 
 ### 例: LINE WORKS だけでいい
 
@@ -72,12 +70,12 @@ cp apps.example.json ~/.config/claude-remap/apps.json
 { "com.naver.lineworks": "chat" }
 ```
 
-### 例: Claude と Paradev だけでいい
+### 例: Claude と ChatGPT だけでいい
 
 ```json
 {
   "com.anthropic.claudefordesktop": "chat",
-  "com.superset.desktop": "terminal"
+  "com.openai.codex": "chat"
 }
 ```
 
@@ -94,7 +92,7 @@ defaults read "/Applications/アプリ名.app/Contents/Info.plist" CFBundleIdent
 「Enter で送信・Shift+Enter で改行」のアプリなら `chat`、ターミナル系なら `terminal` にします。
 ブラウザは URL バーや検索欄まで改行になるので対象に入れないでください。
 
-## Paradev（ターミナル）で使う場合
+## ターミナルで使う場合（`terminal` モード）
 
 `terminal` モードは Cmd+Enter を Option+Enter に変えるだけです。改行と送信の切り替えは Claude Code のキー設定で行います。
 `keybindings.example.json` を `~/.claude/keybindings.json` に置いてください（既にある場合は `Chat` の部分を追記）。
@@ -111,7 +109,16 @@ defaults read "/Applications/アプリ名.app/Contents/Info.plist" CFBundleIdent
 
 これで Claude Code の入力欄だけ Enter＝改行、Option+Enter（Cmd+Enter も）＝送信になります。メニューや確認ダイアログの Enter は決定のままです。
 この設定は Claude Code の起動時に読まれるので、新しいセッションから有効になります。
-また Paradev 以外のターミナル（Terminal.app など）でも Claude Code は Enter＝改行、Option+Enter＝送信になります。
+この設定は Claude Code 全体に効くので、ClaudeRemap の対象にしていないターミナルでも Claude Code は Enter＝改行、Option+Enter＝送信になります。
+
+### Paradev は対象外
+
+Paradev（旧名 Superset）は ClaudeRemap の対象にしていません。また、Paradev で Claude Code を使うなら上のキー設定も置かないでください。
+
+- Paradev の端末は Shift+Enter と Cmd+Enter をどちらも `ESC CR`（Claude Code では Option+Enter と同じ `meta+enter`）に変換して送ります。そのため、このキー設定と組み合わせると Shift+Enter でも送信されます。
+- Claude Code の質問（AskUserQuestion）の自由記述欄は「Enter＝送信、Shift+Enter＝改行」で固定されていて、キー設定では変えられません。
+
+Paradev では Claude Code の既定（Enter＝送信、Shift+Enter／Cmd+Enter＝改行）のまま使ってください。
 
 ## ログを見る
 
@@ -174,7 +181,7 @@ open ~/Applications/ClaudeRemap.app
 | `Info.plist` | アプリバンドルの設定（`LSUIElement` でメニューバー非表示） |
 | `build.sh` | ビルドと組み立て。`--install` で `~/Applications` へ入れ替え |
 | `apps.example.json` | 対象アプリ設定の例（既定と同じ内容） |
-| `keybindings.example.json` | Paradev 用の Claude Code キー設定の例 |
+| `keybindings.example.json` | `terminal` モード用の Claude Code キー設定の例 |
 | `dist.sh` | 非エンジニア向け配布 zip の作成（universal ビルド＋インストーラ＋手順書 PDF） |
 | `installer/インストール.command` | 配布 zip に入れるダブルクリック用インストーラ |
 | `docs/手順書.html` | 配布 zip に入れる手順書の原稿（dist.sh が PDF 化） |

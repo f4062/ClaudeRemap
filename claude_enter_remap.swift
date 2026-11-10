@@ -18,8 +18,7 @@ let DEFAULT_APPS: [String: RemapMode] = [
     "com.anthropic.claudefordesktop": .chat,  // Claude
     "com.openai.codex": .chat,                // ChatGPT
     "com.naver.lineworks": .chat,             // LINE WORKS
-    "com.microsoft.teams2": .chat,            // Microsoft Teams
-    "com.superset.desktop": .terminal         // Paradev（旧名 Superset）
+    "com.microsoft.teams2": .chat             // Microsoft Teams
 ]
 
 // 設定ファイル: ~/.config/claude-remap/apps.json
