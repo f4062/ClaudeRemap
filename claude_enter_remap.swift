@@ -5,11 +5,9 @@ let KEYCODE_ENTER: CGKeyCode = 36
 
 // アプリごとの変換ルール
 //   chat:     Enter → Shift+Enter（改行）, Cmd+Enter → Enter（送信）
-//   terminal: Enter はそのまま（IME確定・メニュー決定・シェルを壊さない）, Cmd+Enter → Option+Enter
-//             （Claude Code 側の ~/.claude/keybindings.json で enter=改行 / meta+enter=送信 にする）
+// （以前あった terminal モードは廃止。ターミナルは Enter の文脈＝入力欄・メニュー・シェルを区別できないため対象外）
 enum RemapMode: String {
     case chat
-    case terminal
 }
 
 // 組み込みの既定（設定ファイルが無いときに使う）。bundle identifier の完全一致で判定する
@@ -22,7 +20,7 @@ let DEFAULT_APPS: [String: RemapMode] = [
 ]
 
 // 設定ファイル: ~/.config/claude-remap/apps.json
-//   { "<bundle id>": "chat" | "terminal", ... }
+//   { "<bundle id>": "chat", ... }
 // あればこちらだけを使う（既定とは合成しない）。壊れていれば既定にフォールバックする
 let HOME = ProcessInfo.processInfo.environment["HOME"] ?? NSHomeDirectory()
 let CONFIG_PATH = "\(HOME)/.config/claude-remap/apps.json"
@@ -34,12 +32,12 @@ func loadTargetApps() -> (apps: [String: RemapMode], source: String) {
     do {
         let data = try Data(contentsOf: URL(fileURLWithPath: CONFIG_PATH))
         guard let raw = try JSONSerialization.jsonObject(with: data) as? [String: String] else {
-            return (DEFAULT_APPS, "既定にフォールバック（\(CONFIG_PATH) の形式が {\"bundle id\": \"chat\"|\"terminal\"} でない）")
+            return (DEFAULT_APPS, "既定にフォールバック（\(CONFIG_PATH) の形式が {\"bundle id\": \"chat\"} でない）")
         }
         var apps: [String: RemapMode] = [:]
         for (bundleID, modeName) in raw {
             guard let mode = RemapMode(rawValue: modeName) else {
-                return (DEFAULT_APPS, "既定にフォールバック（\(CONFIG_PATH): \(bundleID) のモード \"\(modeName)\" が不正。chat か terminal）")
+                return (DEFAULT_APPS, "既定にフォールバック（\(CONFIG_PATH): \(bundleID) のモード \"\(modeName)\" が不正。chat のみ。terminal モードは廃止）")
             }
             apps[bundleID] = mode
         }
@@ -97,20 +95,12 @@ func eventCallback(
         return Unmanaged.passRetained(event)
     }
 
-    guard let mode = activeRemapMode() else {
+    guard activeRemapMode() != nil else {
         return Unmanaged.passRetained(event)
     }
 
     // 日本語入力の変換確定など、IMEが生成したEnterはそのまま通す
     if isIMEEvent(event) {
-        return Unmanaged.passRetained(event)
-    }
-
-    if mode == .terminal {
-        // ターミナル型: Enter 単体は一切触らない。Cmd+Enter → Option+Enter（ESC CR）に変換する
-        if isCmd {
-            event.flags = flags.subtracting(.maskCommand).union(.maskAlternate)
-        }
         return Unmanaged.passRetained(event)
     }
 
@@ -144,7 +134,6 @@ for (bundleID, mode) in TARGET_APPS.sorted(by: { $0.key < $1.key }) {
     log("  \(bundleID): \(mode.rawValue)")
 }
 log("chat: Enter → 改行 / Command+Enter → 送信 / IME確定 → 素通り")
-log("terminal: Enter → そのまま / Command+Enter → Option+Enter")
 
 // アクセシビリティ許可。未許可なら macOS 標準のダイアログを出し（一覧にも自動で載る）、許可されるまで待つ。
 // 起動中のプロセスでは AXIsProcessTrusted() の結果が更新されない（execv で同じ pid のまま再実行しても同じ。
